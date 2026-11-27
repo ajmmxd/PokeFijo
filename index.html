@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poke Fijo - Catálogo</title>
+<link id="favicon" rel="icon" type="image/png" href="">
+
+<style>
+  * { box-sizing: border-box; }
+  
+  /* --- FONDO DE LA PÁGINA --- */
+  body { 
+    font-family: Arial, sans-serif; 
+    margin: 0; 
+    padding: 20px; 
+    min-height: 100vh; 
+    background-color: #f5f5f5;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('https://lh3.googleusercontent.com/d/1yEO6x6jOqI4t0BbGmJSkS9Ou1W9hPdO6');
+    background-size: cover; 
+    background-position: center; 
+    background-attachment: fixed; 
+    background-repeat: no-repeat;
+  }
+  
+  /* --- ESTILOS DEL ENCABEZADO Y LOGO --- */
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+  }
+  #logo { max-height: 150px; max-width: 100%; margin-bottom: 15px; object-fit: contain; }
+  h1 { 
+    text-align: center; margin: 0; font-size: 32px; text-transform: uppercase; letter-spacing: 1px;
+    background: linear-gradient(to right, #1e3c72, #2a5298, #000000);
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; 
+  }
+
+  /* --- BOTÓN DEL CARRITO --- */
+  #cart-icon-container {
+    position: absolute; top: 0; right: 0; cursor: pointer; background: white;
+    padding: 10px 15px; border-radius: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: flex; align-items: center; gap: 10px; transition: transform 0.2s;
+  }
+  #cart-icon-container:hover { transform: scale(1.05); }
+  #cart-icon-container svg { width: 24px; height: 24px; fill: #333; }
+  #cart-count { background: #e3350d; color: white; border-radius: 50%; padding: 2px 8px; font-size: 14px; font-weight: bold; }
+  
+  #grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; }
+  @media (max-width: 900px) { #grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { #grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 500px) { #grid { grid-template-columns: 1fr; } }
+  
+  /* --- TARJETAS DE PRODUCTO --- */
+  .card { 
+    background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    display: flex; flex-direction: column; transition: transform 0.2s; position: relative;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+  .img-container { 
+    width: 100%; height: 250px; background-color: white; border-left: 25px solid #eaeaea; border-right: 25px solid #eaeaea; 
+    display: flex; align-items: center; justify-content: center; padding: 10px; 
+  }
+  .card img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .info { padding: 15px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+  .nombre { font-weight: bold; font-size: 14px; color: #333; line-height: 1.3; min-height: 36px; }
+  .precio { font-size: 18px; font-weight: bold; color: #2e7d32; }
+  .stock { font-size: 12px; color: #666; }
+  .agotado { color: #d32f2f; font-weight: bold; }
+
+  /* --- BOTÓN AGREGAR --- */
+  .btn-agregar {
+    position: absolute; bottom: 0; left: 0; width: 100%; background: #2e7d32; color: white; border: none;
+    padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transform: translateY(100%); transition: transform 0.3s ease; opacity: 0;
+  }
+  .card:hover .btn-agregar { transform: translateY(0); opacity: 1; }
+  .btn-agregar:hover { background: #1b5e20; }
+  .btn-agregar svg { width: 18px; height: 18px; fill: white; }
+
+  /* --- PANEL DEL CARRITO --- */
+  #cart-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 999; }
+  #cart-panel {
+    position: fixed; top: 0; right: -400px; width: 100%; max-width: 400px; height: 100%; background: white;
+    box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 1000; display: flex; flex-direction: column; transition: right 0.3s ease;
+  }
+  #cart-panel.open { right: 0; }
+  #cart-overlay.open { display: block; }
+  .cart-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+  .cart-header h2 { margin: 0; font-size: 20px; }
+  #close-cart { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+  .cart-items { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+  .cart-item { display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+  .cart-item img { width: 60px; height: 60px; object-fit: contain; border: 1px solid #eee; border-radius: 5px; }
+  .cart-item-info { flex-grow: 1; }
+  .cart-item-info h4 { margin: 0 0 5px 0; font-size: 13px; color: #333; }
+  .cart-item-info p { margin: 0; font-size: 14px; color: #2e7d32; font-weight: bold; }
+  .cart-controls { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+  .cart-controls button { background: #eee; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  .cart-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .cart-controls span { font-size: 14px; font-weight: bold; }
+  .cart-footer { padding: 20px; border-top: 1px solid #eee; background: #f9f9f9; }
+  .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+  #btn-pagar { width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+  #btn-pagar:hover { background: #1b5e20; }
+
+  /* --- MODAL DE CONFIRMACIÓN (CHECKOUT) --- */
+  #checkout-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+  }
+  .modal-content {
+    background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 450px;
+    display: flex; flex-direction: column; max-height: 90vh;
+  }
+  .modal-content h2 { margin-top: 0; text-align: center; color: #333; }
+  .checkout-list { flex-grow: 1; overflow-y: auto; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+  .checkout-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+  .checkout-item span:first-child { font-weight: bold; }
+  .checkout-total { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #2e7d32; }
+  #btn-whatsapp {
+    width: 100%; padding: 15px; background: #25D366; color: white; border: none; border-radius: 8px;
+    font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;
+  }
+  #btn-whatsapp:hover { background: #128C7E; }
+  #btn-cerrar-modal { background: #ccc; color: #333; border: none; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
+  /* --- BOTONES FLOTANTES (ESQUINAS) --- */
+  .floating-btn {
+    position: fixed;
+    bottom: 30px;
+    padding: 15px 20px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    z-index: 1500;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .floating-btn svg { width: 24px; height: 24px; fill: white; flex-shrink: 0; transition: margin 0.3s; }
+  .floating-btn .btn-text { max-width: 0; opacity: 0; transition: all 0.3s ease; }
+  
+  .floating-btn:hover .btn-text { max-width: 250px; opacity: 1; margin-left: 10px; }
+
+  /* Botón WhatsApp (Izquierda) */
+  #btn-wa-group {
+    left: 30px;
+    background: #25D366;
+  }
+  #btn-wa-group:hover { background: #128C7E; }
+
+  /* Botón Collectr (Derecha) */
+  #btn-collectr {
+    right: 30px;
+    background: #673AB7; /* Color morado de Collectr */
+  }
+  #btn-collectr:hover { background: #512DA8; }
+
+  @media (max-width: 600px) {
+    .floating-btn { padding: 12px; bottom: 20px; }
+    #btn-wa-group { left: 20px; }
+    #btn-collectr { right: 20px; }
+    .floating-btn:hover .btn-text { max-width: 150px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="cart-icon-container">
+    <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    <span id="cart-count">0</span>
+  </div>
+  <img id="logo" src="" alt="Logo Poke Fijo" style="display: none;">
+  <h1>Catálogo de Productos</h1>
+</header>
+
+<div id="grid">Cargando productos...</div>
+
+<!-- BOTONES FLOTANTES -->
+<a href="https://chat.whatsapp.com/C3OSN3wQwqsHnIWV6bp1Si?s=cl&p=a&iam=2" target="_blank" id="btn-wa-group" class="floating-btn" title="Unirte a la comunidad">
+  <svg viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 3.825 0 6.936 3.113 6.937 6.937 0 3.826-3.112 6.937-6.937 6.937z"/></svg>
+  <span class="btn-text">Unirte a la comunidad</span>
+</a>
+
+<a href="https://app.getcollectr.com/showcase/profile/5938f776-002a-4783-8bac-dbed38cfc15a?collection=aca7a4e6-5c9f-4f58-869e-c945b3671ca8" target="_blank" id="btn-collectr" class="floating-btn" title="Ver Singles en Collectr">
+  <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+  <span class="btn-text">Singles (Collectr)</span>
+</a>
+<!-- FIN BOTONES FLOTANTES -->
+
+<!-- PANEL DEL CARRITO -->
+<div id="cart-overlay"></div>
+<div id="cart-panel">
+  <div class="cart-header">
+    <h2>Tu Carrito</h2>
+    <button id="close-cart">&times;</button>
+  </div>
+  <div class="cart-items" id="cart-items-container"></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span>Total:</span><span id="cart-total-price">$0</span></div>
+    <button id="btn-pagar">Finalizar Compra</button>
+  </div>
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div id="checkout-modal">
+  <div class="modal-content">
+    <h2>Resumen de tu Pedido</h2>
+    <div class="checkout-list" id="checkout-list-container"></div>
+    <div class="checkout-total"><span>Total:</span><span id="checkout-total-price">$0</span></div>
+    
+    <a href="#" id="btn-whatsapp" target="_blank">
+      <svg style="width:24px; height:24px; fill:white;" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 3.825 0 6.936 3.113 6.937 6.937 0 3.826-3.112 6.937-6.937 6.937z"/></svg>
+      Finalizar por WhatsApp
+    </a>
+    <button id="btn-cerrar-modal">Volver al catálogo</button>
+  </div>
+</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbw2Z7uqtfy7QPoIAlD7FHLJfhjSh1uT_BGe8zpbfoKYxWjt7pa3Na3f_Anq_4l-cBQJ/exec";
+const LOGO_ID = "1l9LZY_QYcSjNBC2MEOU49oEXkUkm5gKw"; 
+const TU_WHATSAPP = "584146646414"; 
+
+const grid = document.getElementById("grid");
+const logoImg = document.getElementById("logo");
+const favicon = document.getElementById("favicon");
+
+let carrito = JSON.parse(localStorage.getItem("pokefijo_cart")) || [];
+let productosGlobal = [];
+
+const cartCountEl = document.getElementById("cart-count");
+const cartPanel = document.getElementById("cart-panel");
+const cartOverlay = document.getElementById("cart-overlay");
+const cartItemsContainer = document.getElementById("cart-items-container");
+const cartTotalPrice = document.getElementById("cart-total-price");
+const checkoutModal = document.getElementById("checkout-modal");
+
+if (LOGO_ID) {
+  const logoUrl = "https://lh3.googleusercontent.com/d/" + LOGO_ID;
+  logoImg.src = logoUrl;
+  logoImg.style.display = "block"; 
+  favicon.href = logoUrl;
+}
+
+function guardarCarrito() {
+  localStorage.setItem("pokefijo_cart", JSON.stringify(carrito));
+  actualizarInterfazCarrito();
+}
+
+function actualizarInterfazCarrito() {
+  const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+  cartCountEl.textContent = totalItems;
+
+  cartItemsContainer.innerHTML = "";
+  let totalPagar = 0;
+
+  if (carrito.length === 0) {
+    cartItemsContainer.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'>El carrito está vacío</p>";
+  } else {
+    carrito.forEach((item, index) => {
+      totalPagar += (item.precio * item.cantidad);
+      const prodInfo = productosGlobal.find(p => p.nombre === item.nombre);
+      const stockMax = prodInfo ? prodInfo.stock : 0;
+      const sinStock = item.cantidad >= stockMax;
+
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <img src="https://lh3.googleusercontent.com/d/${item.imagenID}" alt="${item.nombre}">
+        <div class="cart-item-info">
+          <h4>${item.nombre}</h4>
+          <p>$${item.precio}</p>
+          <div class="cart-controls">
+            <button onclick="cambiarCantidad(${index}, -1)">-</button>
+            <span>${item.cantidad}</span>
+            <button onclick="cambiarCantidad(${index}, 1)" ${sinStock ? 'disabled title="Límite de stock alcanzado"' : ''}>+</button>
+          </div>
+        </div>
+      `;
+      cartItemsContainer.appendChild(div);
+    });
+  }
+  cartTotalPrice.textContent = "$" + totalPagar.toFixed(2);
+}
+
+window.cambiarCantidad = function(index, cambio) {
+  const item = carrito[index];
+  if (cambio > 0) {
+    const prodInfo = productosGlobal.find(p => p.nombre === item.nombre);
+    if (prodInfo && item.cantidad >= prodInfo.stock) {
+      return; 
+    }
+  }
+
+  item.cantidad += cambio;
+  if (item.cantidad <= 0) {
+    carrito.splice(index, 1);
+  }
+  guardarCarrito();
+}
+
+window.agregarAlCarrito = function(nombre, precio, imagenID, stock) {
+  const itemExistente = carrito.find(item => item.nombre === nombre);
+  
+  if (itemExistente) {
+    if (itemExistente.cantidad >= stock) {
+      alert("No hay más stock disponible de este producto.");
+      return;
+    }
+    itemExistente.cantidad += 1;
+  } else {
+    carrito.push({ nombre, precio, imagenID, cantidad: 1 });
+  }
+  
+  guardarCarrito();
+  
+  cartPanel.classList.add("open");
+  cartOverlay.classList.add("open");
+  setTimeout(() => {
+    cartPanel.classList.remove("open");
+    cartOverlay.classList.remove("open");
+  }, 800);
+}
+
+document.getElementById("cart-icon-container").addEventListener("click", () => {
+  cartPanel.classList.add("open");
+  cartOverlay.classList.add("open");
+});
+document.getElementById("close-cart").addEventListener("click", () => {
+  cartPanel.classList.remove("open");
+  cartOverlay.classList.remove("open");
+});
+cartOverlay.addEventListener("click", () => {
+  cartPanel.classList.remove("open");
+  cartOverlay.classList.remove("open");
+});
+
+document.getElementById("btn-pagar").addEventListener("click", () => {
+  if (carrito.length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+
+  const listContainer = document.getElementById("checkout-list-container");
+  listContainer.innerHTML = "";
+  let total = 0;
+  let mensajeWA = "Hola Poke Fijo, quiero realizar el siguiente pedido:\n\n";
+
+  carrito.forEach(item => {
+    const subtotal = item.precio * item.cantidad;
+    total += subtotal;
+    listContainer.innerHTML += `
+      <div class="checkout-item">
+        <span>${item.cantidad}x ${item.nombre}</span>
+        <span>$${subtotal.toFixed(2)}</span>
+      </div>
+    `;
+    mensajeWA += `- ${item.cantidad}x ${item.nombre} ($${subtotal.toFixed(2)})\n`;
+  });
+
+  document.getElementById("checkout-total-price").textContent = "$" + total.toFixed(2);
+  mensajeWA += `\n*Total a pagar: $${total.toFixed(2)}*\n\n¿Me confirman disponibilidad para coordinar el pago?`;
+
+  const waLink = `https://wa.me/${TU_WHATSAPP}?text=${encodeURIComponent(mensajeWA)}`;
+  document.getElementById("btn-whatsapp").href = waLink;
+
+  checkoutModal.style.display = "flex";
+  cartPanel.classList.remove("open");
+  cartOverlay.classList.remove("open");
+});
+
+document.getElementById("btn-cerrar-modal").addEventListener("click", () => {
+  checkoutModal.style.display = "none";
+});
+
+async function cargarProductos() {
+  try {
+    const respuesta = await fetch(SHEET_URL);
+    const productos = await respuesta.json();
+    productosGlobal = productos.map(fila => ({
+      nombre: fila.Nombre || "Sin nombre",
+      precio: parseFloat(fila.Precio) || 0,
+      stock: parseInt(fila.Stock) || 0,
+      imagenID: fila.ImagenID || ""
+    }));
+
+    grid.innerHTML = "";
+
+    productosGlobal.forEach(prod => {
+      const card = document.createElement("div");
+      card.className = "card";
+      
+      const imgContainer = document.createElement("div");
+      imgContainer.className = "img-container";
+      const img = document.createElement("img");
+
+      if (prod.imagenID) {
+        img.src = "https://lh3.googleusercontent.com/d/" + prod.imagenID;
+        img.onerror = function() {
+          this.onerror = null; 
+          this.src = "https://drive.google.com/thumbnail?id=" + prod.imagenID + "&sz=w500";
+        };
+      }
+      
+      img.alt = prod.nombre;
+      img.loading = "lazy";
+      imgContainer.appendChild(img);
+
+      const info = document.createElement("div");
+      info.className = "info";
+      
+      const elNombre = document.createElement("div");
+      elNombre.className = "nombre";
+      elNombre.textContent = prod.nombre;
+      
+      const elPrecio = document.createElement("div");
+      elPrecio.className = "precio";
+      elPrecio.textContent = "$" + prod.precio;
+      
+      const elStock = document.createElement("div");
+      elStock.className = "stock";
+      if (prod.stock > 0) { elStock.textContent = "Stock disponible: " + prod.stock; } 
+      else { elStock.textContent = "AGOTADO"; elStock.classList.add("agotado"); }
+
+      info.appendChild(elNombre);
+      info.appendChild(elPrecio);
+      info.appendChild(elStock);
+
+      if (prod.stock > 0) {
+        const btnAgregar = document.createElement("button");
+        btnAgregar.className = "btn-agregar";
+        btnAgregar.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+          Agregar
+        `;
+        btnAgregar.onclick = () => agregarAlCarrito(prod.nombre, prod.precio, prod.imagenID, prod.stock);
+        card.appendChild(btnAgregar);
+      }
+
+      card.appendChild(imgContainer);
+      card.appendChild(info);
+      grid.appendChild(card);
+    });
+
+    actualizarInterfazCarrito();
+
+  } catch (error) {
+    console.error(error);
+    grid.innerHTML = "<p style='text-align:center; color:red;'>Error al cargar los productos.</p>";
+  }
+}
+
+cargarProductos();
+</script>
+
+</body>
+</html>
